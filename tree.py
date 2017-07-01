@@ -9,6 +9,10 @@ import hashlib
 class Tree:
 	"""LoganTree: A super-sexy Merkel Tree"""
 
+	# Bytes
+	leaf_byte = bytes(0)
+	node_byte = bytes(1)
+
 	# __INIT__()
 	# Initialize a new Tree from Directory root
 	def __init__(self, root):
@@ -98,6 +102,13 @@ class Tree:
 	# md5sum()
 	# Create an md5 checksum from directory path or file.
 	# This serves as a hash for any given object represented.
+	# Add a 0x00 byte to leaf, 0x01 to all internal nodes
+	# This protects against second-preimage attacks. I'm not
+	# even sure how one would practically form a second-
+	# preimage attack, but since the leaf and inner nodes
+	# have different bytes prefixed to their hashes,
+	# no one should be able to reconstruct that hash
+	# with different files/directories
 	def md5sum(self, data):
 		m = hashlib.md5()
 		fn = data
@@ -110,10 +121,10 @@ class Tree:
 				d = f.read(8096)
 				if not d:
 					break
-				m.update(d)
+				m.update(self.leaf_byte + d)
 			f.close()
 		else:
-			m.update(data.encode('utf-8'))
+			m.update(self.node_byte + data.encode('utf-8'))
 		return m.hexdigest()
 
 	# HashListChild()
@@ -166,6 +177,6 @@ def MTDiff(mt_a, a_tophash, mt_b, b_tophash):
 # MAIN
 if __name__ == "__main__":
 	mt_a = Tree('testA')
-	print (mt_a._mt)
+	# print (mt_a._mt)
 	mt_b = Tree('testB')
 	MTDiff(mt_a, mt_a._tophash, mt_b, mt_b._tophash)
