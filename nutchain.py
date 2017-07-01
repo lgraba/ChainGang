@@ -14,6 +14,7 @@ class NutChain:
 	# Bytes
 	leaf_byte = bytes(0)
 	node_byte = bytes(1)
+	version = '.01'
 
 	def __init__(self, root):
 		# Attributes
@@ -32,10 +33,14 @@ class NutChain:
 
 	# Create and print Merkel Sack from Config File
 	def __MT__(self):
+		# Initialize with Genesis Nut
 		genesis_nut = self.readconfig()
+		previous_nut = genesis_nut
 
-		transaction = self.server.startListening()
-		self.newBlock(genesis_nut, transaction)
+		while True:
+			txs = self.server.startListening()
+			if (txs):
+				previous_nut = self.newNut(previous_nut, txs)
 		# print(genesis_nut)
 		# self.HashList(self.genesis_nut)
 		# self.PrintHashList()
@@ -73,10 +78,44 @@ class NutChain:
 	            data[option] = None
 	    return data
 
-	def newBlock(self, prev, new):
-		print("We're going to make a new block with the following:\n")
+	def newNut(self, prev, new_transactions):
+		print("We're going to make a new Nut with the following shit:\n")
 		print(prev)
-		print(new)
+		print(new_transactions)
+		print("\n\n")
+
+		# Vars
+		transactions = {}
+
+		# Loop through new transactions array
+		for transaction in new_transactions:
+			# Convert to bytes, hash
+			m = hashlib.md5()
+			m.update(transaction)
+			tx_hash = m.hexdigest()
+
+			# Add strings from array to transactions dictionary -> (eventually) Transactions Section
+			transactions[tx_hash] = transaction
+
+		# Hash each tx_hash (keys of transactions dictionary)
+		mh = hashlib.md5()
+		for tx_hash, transaction in transactions.items():
+			mh.update(tx_hash.encode('utf-8'))
+		
+		crush = mh.hexdigest()
+		print("Crush: " + crush + "\n")
+		print(transactions)
+
+		# Make Header
+		# header = {'version':self.version,}
+
+		# Make Block
+		# data = {}
+		# data['header'] = header
+		# data['transactions'] = transactions
+		# data['accounts'] = accounts
+		# 
+		# return data # New nut
 
 # MAIN
 if __name__ == "__main__":

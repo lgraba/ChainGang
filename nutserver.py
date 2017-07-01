@@ -21,10 +21,11 @@ class NutServer:
 		# Listen (1 connection at a time)
 		self.sock.listen(1)
 		# Any received transactions
-		transactions = {}
+		transactions = []
+		done_loopin = False
 
 		# Loop
-		while not transactions:
+		while not done_loopin:
 			# Wait for connection
 			print("Waiting for a connection...\n")
 			connection, client_address = self.sock.accept()
@@ -32,26 +33,46 @@ class NutServer:
 			try:
 				print("Connection from {}".format(client_address))
 
+				t_list = b''
 				# Receive Data
-				while not transactions:
-					data = connection.recv(16)
+				while True:
+					data = connection.recv(128)
 					# Current UNIX timestamp
 					data_time = time.time()
 					print("Received '{}'".format(data))
 
 					if data:
-						print("Sending data back to client...\n")
+						print("Sending data back to client for confirmation.\n")
 						connection.sendall(data)
 
 						# Test
-						test_data = "Give Sarah 10n from Logan at " + str(data_time) + "; What a gal!"
-						print("Submitting to NutChain")
-						transactions.update({1:test_data})
+						# test_data1 = "Give Sarah 10n from Logan"
+						# test_data2 = "Give Sarah 10n from Logan; What a gal!"
+						t_list += data
+						print("Added data to t_list")
+						
 					else:
 						print("No more data from ".format(client_address))
 						break
+
+				# Break up t_list by \n
+				transactions = t_list.splitlines()
+				
 			finally:
 				# Clean Up!
 				connection.close()
+				done_loopin = True
 
-		return transactions
+		# Check Transactions for Validity
+		check = self.checkTransactions(transactions)
+		if (check):
+			print("The following transactions were fucked:\n")
+			print(check)
+			return False
+
+		if (transactions):
+			print("Submitting transactions to NutChain")
+			return transactions
+		else:
+			print("No transactions received")
+			return False
