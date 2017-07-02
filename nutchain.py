@@ -7,6 +7,7 @@ import hashlib
 import configparser
 import time
 import nutserver
+import transaction
 
 class NutChain:
 	"""NutChain: A super-sexy NutChain"""
@@ -43,20 +44,21 @@ class NutChain:
 			txs = self.server.startListening()
 			if (txs):
 				previous_nut = self.newNut(previous_nut, txs)
+				print(previous_nut)
 		# print(genesis_nut)
 		# self.HashList(self.genesis_nut)
 		# self.PrintHashList()
 		# self.MT()
 		# print ("Merkle Tree for {}: ".format(self._root))
 		# self.PrintMT(self._tophash)
-		# self.Line()
+		# self.line()
 	
 	def readconfig(self):
 		self.Config = configparser.ConfigParser()
 		self.Config.read("genesis.nut")
 		header = self.configSectionMap('Header')
 		transactions = self.configSectionMap('Transactions')
-		accounts = self.configSectionMap('Accounts')
+		accounts = self.configAccountMap('Accounts')
 
 		data = {}
 		data['header'] = header
@@ -64,6 +66,7 @@ class NutChain:
 		data['accounts'] = accounts
 
 		print("Genesis block read")
+		self.line()
 
 		return data
 
@@ -80,27 +83,67 @@ class NutChain:
 	            data[option] = None
 	    return data
 
+	def configAccountMap(self, section):
+	    data = {}
+	    options = self.Config.options(section)
+	    for option in options:
+	        try:
+	            data[option] = float(self.Config.get(section, option))
+	            if data[option] == -1:
+	                DebugPrint("skip: %s" % option)
+	        except:
+	            print("exception on %s!" % option)
+	            data[option] = None
+	    return data
+
 	def newNut(self, prev, new_transactions):
-		print("We're going to make a new Nut with the following shit:\n")
+		self.line()
+		print("We're going to make a new Nut with the following shit:")
 		print("Previous Block: ")
 		print(prev)
-		print("New Transactions: \n")
+		print("New Transactions: ")
 
-		# Vars
+		# Unpack prev
+		previous_header = prev['header']
+		previous_transactions = prev['transactions']
+		previous_accounts = prev['accounts']
+
+		# New Transactions to add to New Nut
 		transactions = {}
 
 		# Loop through new transactions array
 		for transaction in new_transactions:
 			print(transaction)
-			print("\n")
+
+			# Transaction specifics
+			sender = transaction.sender
+			amount = transaction.amount
+			receiver = transaction.receiver
+
+			# TODO: VERIFY TRANSACTION
 
 			# Convert to bytes, hash
 			m = hashlib.md5()
 			m.update(transaction.byte_representation())
 			tx_hash = m.hexdigest()
 
+			# Subtract inputs from Previous Accounts
+			if sender in previous_accounts:
+				previous_accounts[sender] -= amount
+			else:
+				print("ERROR; No '" + sender + "' account to pull " + str(amount) + " from to transfer to " + receiver + "!")
+				continue
+			# Add outputs to Previous Accounts and New Accounts
+			if receiver in previous_accounts:
+				previous_accounts[receiver] += amount
+			else:
+				previous_accounts[receiver] = amount
+				print("Created '" + receiver + "' account to receive " + str(amount) + " from " + sender + "!")
+
 			# Add transactions from array to transactions dictionary -> (eventually) Transactions Section
 			transactions[tx_hash] = transaction
+
+		self.line()
 
 		# Hash each tx_hash (keys of transactions dictionary)
 		mh = hashlib.md5()
@@ -108,11 +151,6 @@ class NutChain:
 			mh.update(tx_hash.encode('utf-8'))
 		
 		crush = mh.hexdigest()
-
-		# Unpack prev
-		previous_header = prev['header']
-		previous_transactions = prev['transactions']
-		previous_accounts = prev['accounts']
 
 		# Make pre_header
 		pre_header = {
@@ -141,18 +179,21 @@ class NutChain:
 			'difficulty':self.difficulty,
 			'nonce':self.nonce
 		}
-		print(header)
+		# print(header)
 
 		# Balance Accounts
-		
+		accounts = previous_accounts
 
 		# Make Nut
-		# nut = {}
-		# nut['header'] = header
-		# nut['transactions'] = transactions
-		# nut['accounts'] = accounts
-		# 
-		# return nut # New nut
+		nut = {}
+		nut['header'] = header
+		nut['transactions'] = transactions
+		nut['accounts'] = accounts
+		
+		return nut # New nut
+
+	def line(self):
+		print(self._linelength*'-')
 
 # MAIN
 if __name__ == "__main__":

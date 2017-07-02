@@ -13,6 +13,11 @@ class Transaction():
 		if (tx_bytes):
 			# De-serialize into namedTuple and set self.transaction
 			self.transaction = pickle.loads(tx_bytes)
+			tx_input = self.transaction.input
+			(self.sender, self.amount), = tx_input.items()
+			tx_output = self.transaction.output
+			(self.receiver, crap), = tx_output.items()
+			# print(tx_output)
 		else:
 			comment_part = None
 			# Split on semicolon, if present
@@ -37,6 +42,7 @@ class Transaction():
 			if (words[3] in from_array):
 				self.sender = words[4]
 
+			# Only one transfer per transaction right now, although we could have more complex input/output dicts
 			self.transaction = Tx({self.sender:self.amount}, {self.receiver:self.amount}, time.time(), comment_part)
 
 	# Return Printable on special function repr
