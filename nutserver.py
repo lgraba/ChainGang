@@ -1,6 +1,8 @@
 import socket
 import sys
 import time
+import pickle
+import transaction
 
 class NutServer:
 	""" NutServer: Logan's super sexy Server built to accept transactions to add to the Nutchain"""
@@ -36,27 +38,32 @@ class NutServer:
 				t_list = b''
 				# Receive Data
 				while True:
-					data = connection.recv(128)
+					data = connection.recv(4096)
 					# Current UNIX timestamp
 					data_time = time.time()
-					print("Received '{}'".format(data))
+					# print("Received '{}'".format(data))
 
 					if data:
-						print("Sending data back to client for confirmation.\n")
+						# print("Sending data back to client for confirmation.")
 						connection.sendall(data)
 
 						# Test
 						# test_data1 = "Give Sarah 10n from Logan"
 						# test_data2 = "Give Sarah 10n from Logan; What a gal!"
 						t_list += data
-						print("Added data to t_list")
+						# print("Added data to t_list")
 						
 					else:
-						print("No more data from ".format(client_address))
+						print("No more data from {}, the filthy animal!".format(client_address))
 						break
 
-				# Break up t_list by \n
-				transactions = t_list.splitlines()
+				# Split Transactions on bytes
+				split_data = t_list.split(b'\x80\x03')
+				# Add each Transaction object to transactions array
+				for tx_data in split_data:
+					if tx_data:
+						received_tx = transaction.Transaction(None, tx_data)
+						transactions.append(received_tx)
 				
 			finally:
 				# Clean Up!
@@ -70,9 +77,16 @@ class NutServer:
 			print(check)
 			return False
 
+		# Return Transactions array
 		if (transactions):
 			print("Submitting transactions to NutChain")
 			return transactions
 		else:
 			print("No transactions received")
 			return False
+
+	# checkTransactions()
+	# Eventually we'll need to verify that the data we're receiving are actually transactions
+	def checkTransactions(self, txs):
+		# print(txs)
+		return False
