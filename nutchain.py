@@ -113,12 +113,15 @@ class NutChain:
 
 		# Loop through new transactions array
 		for transaction in new_transactions:
-			print(transaction)
-
-			# Transaction specifics
-			sender = transaction.sender
-			amount = transaction.amount
-			receiver = transaction.receiver
+			# Balance Accounts
+			try:
+				result = self.balanceAccounts(previous_accounts, transaction)
+				if result:
+					raise Exception(result)
+			except Exception as e:
+				print("Could not balance accounts for transaction: " + transaction.sender + " [" + str(transaction.amount) + "] => " + transaction.receiver + "; ERROR: ")
+				print(e)
+				continue
 
 			# TODO: VERIFY TRANSACTION
 
@@ -126,19 +129,6 @@ class NutChain:
 			m = hashlib.md5()
 			m.update(transaction.byte_representation())
 			tx_hash = m.hexdigest()
-
-			# Subtract inputs from Previous Accounts
-			if sender in previous_accounts:
-				previous_accounts[sender] -= amount
-			else:
-				print("ERROR; No '" + sender + "' account to pull " + str(amount) + " from to transfer to " + receiver + "!")
-				continue
-			# Add outputs to Previous Accounts and New Accounts
-			if receiver in previous_accounts:
-				previous_accounts[receiver] += amount
-			else:
-				previous_accounts[receiver] = amount
-				print("Created '" + receiver + "' account to receive " + str(amount) + " from " + sender + "!")
 
 			# Add transactions from array to transactions dictionary -> (eventually) Transactions Section
 			transactions[tx_hash] = transaction
@@ -191,6 +181,34 @@ class NutChain:
 		nut['accounts'] = accounts
 		
 		return nut # New nut
+
+	def balanceAccounts(self, prev_accounts, transaction):
+		print(transaction)
+
+		# Transaction specifics
+		sender = transaction.sender
+		amount = transaction.amount
+		receiver = transaction.receiver
+
+		# Subtract inputs from Previous Accounts
+		if sender in prev_accounts:
+			# Make sure account has enough in it
+			if (prev_accounts[sender] < amount):
+				print("ERROR; Not enough in '" + sender + "' account to send " + str(amount) + " to " + receiver + "!")
+				return 'INSUFFICIENT_FUNDS_ya_broke_aamf'
+			else:
+				prev_accounts[sender] -= amount
+		else:
+			print("ERROR; No '" + sender + "' account to pull " + str(amount) + " from to transfer to " + receiver + "!")
+			return 'ACCOUNT_DONT_EXIST'
+		# Add outputs to Previous Accounts and New Accounts
+		if receiver in prev_accounts:
+			prev_accounts[receiver] += amount
+		else:
+			prev_accounts[receiver] = amount
+			print("Created '" + receiver + "' account to receive " + str(amount) + " from " + sender + "!")
+
+		return False
 
 	def line(self):
 		print(self._linelength*'-')
