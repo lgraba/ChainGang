@@ -1,3 +1,8 @@
+# nutserver.py
+# Just the pimpest nutserver in the world
+# Logan Graba
+# July 02, 2017
+
 import socket
 import sys
 import time
@@ -21,6 +26,8 @@ class NutServer:
 		print("Starting up server...\nHost: {}\nPort: {}\n".format(host, port))
 		self.sock.bind(self.server_address)
 
+	# startListening()
+	# The main Server Loop; Checks Validity of each transaction received/split from data stream and returns 'em
 	def startListening(self):
 		# Listen (1 connection at a time)
 		self.sock.listen(1)

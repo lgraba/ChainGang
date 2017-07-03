@@ -1,6 +1,8 @@
 # !/usr/bin/env python
 # nutchain.py
 # Just the pimpest nutchain in the world
+# Logan Graba
+# July 02, 2017
 
 import os
 import hashlib
@@ -19,40 +21,28 @@ class NutChain:
 	difficulty = 1
 	nonce = 0
 
-	def __init__(self, root):
-		# Attributes
-		self.space = ''
-		self._linelength = 30
-		self._root = root
-		self._mt = {}
-		self._hashlist = {}
-		self._tophash = ''
-
+	def __init__(self):
+		self._linelength = 40
 		# Start Server
 		self.server = nutserver.NutServer()
-
-		# Start Merkle Tree
+		# Start Merkle Tree from Genesis Nut
 		self.__MT__()
 
+	# __MT__()
 	# Create and print Merkel Sack from Config File
 	def __MT__(self):
 		# Initialize with Genesis Nut
 		genesis_nut = self.readconfig()
 		previous_nut = genesis_nut
 
+		# Make a new Nut for each set of transactions received via Server
 		while True:
 			txs = self.server.startListening()
 			if (txs):
 				previous_nut = self.newNut(previous_nut, txs)
 				print(previous_nut)
-		# print(genesis_nut)
-		# self.HashList(self.genesis_nut)
-		# self.PrintHashList()
-		# self.MT()
-		# print ("Merkle Tree for {}: ".format(self._root))
-		# self.PrintMT(self._tophash)
-		# self.line()
-	
+	# readconfig()
+	# Read a configuration file which represents the Genesis Nut
 	def readconfig(self):
 		self.Config = configparser.ConfigParser()
 		self.Config.read("genesis.nut")
@@ -70,6 +60,8 @@ class NutChain:
 
 		return data
 
+	# configSectionMap()
+	# Break out each section from the configuration file (Genesis Nut) into a Dictionary
 	def configSectionMap(self, section):
 	    data = {}
 	    options = self.Config.options(section)
@@ -83,6 +75,8 @@ class NutChain:
 	            data[option] = None
 	    return data
 
+	# configAccountMap()
+	# Break out the Accounts section from the configuration file (Genesis Nut) into a Dictionary
 	def configAccountMap(self, section):
 	    data = {}
 	    options = self.Config.options(section)
@@ -96,6 +90,8 @@ class NutChain:
 	            data[option] = None
 	    return data
 
+	# newNut()
+	# Create a new Nut with the given Transactions
 	def newNut(self, prev, new_transactions):
 		self.line()
 		print("We're going to make a new Nut with the following shit:")
@@ -182,6 +178,8 @@ class NutChain:
 		
 		return nut # New nut
 
+	# balanceAccounts()
+	# Check validity of all transactions based on Accounts and update Accounts
 	def balanceAccounts(self, prev_accounts, transaction):
 		print(transaction)
 
@@ -210,9 +208,11 @@ class NutChain:
 
 		return False
 
+	# line()
+	# Just a visual demarcation for CLI output
 	def line(self):
-		print(self._linelength*'-')
+		print(self._linelength*'-' + '>>')
 
 # MAIN
 if __name__ == "__main__":
-	a = NutChain('butthole')
+	logan = NutChain()

@@ -1,3 +1,9 @@
+# !/usr/bin/env python
+# nutclient.py
+# Just the pimpest nutclient in the world
+# Logan Graba
+# July 02, 2017
+
 import socket
 import sys
 import time

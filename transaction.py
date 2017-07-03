@@ -1,3 +1,8 @@
+# transaction.py
+# Just the pimpest transaction class, supporting Nutchain
+# Logan Graba
+# July 02, 2017
+
 import time
 import hashlib
 import pickle
