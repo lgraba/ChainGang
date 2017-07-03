@@ -7,6 +7,8 @@ import transaction
 class NutServer:
 	""" NutServer: Logan's super sexy Server built to accept transactions to add to the Nutchain"""
 
+	version = '.01'
+
 	# Server Configuration Parameters
 	server_address = ('localhost', 10000)
 
@@ -62,15 +64,18 @@ class NutServer:
 				# Add each Transaction object to transactions array
 				for tx_data in split_data:
 					if tx_data:
-						received_tx = transaction.Transaction(None, tx_data)
-						transactions.append(received_tx)
+						try:
+							received_tx = transaction.Transaction(None, tx_data)
+							transactions.append(received_tx)
+						except Exception as e:
+							print("Received malformed transaction in byte format, skipping.")
 				
 			finally:
 				# Clean Up!
 				connection.close()
 				done_loopin = True
 
-		# Check Transactions for Validity
+		# Check Transactions for Validity, and only accept the good ones
 		check = self.checkTransactions(transactions)
 		if (check):
 			print("The following transactions were fucked:\n")
@@ -79,7 +84,8 @@ class NutServer:
 
 		# Return Transactions array
 		if (transactions):
-			print("Submitting transactions to NutChain")
+			count = len(transactions)
+			print("Submitting " + str(count) + " transactions to NutChain")
 			return transactions
 		else:
 			print("No transactions received")
@@ -88,5 +94,12 @@ class NutServer:
 	# checkTransactions()
 	# Eventually we'll need to verify that the data we're receiving are actually transactions
 	def checkTransactions(self, txs):
-		# print(txs)
-		return False
+		shit_transactions = []
+		current_time = time.time()
+		for tx in txs:
+			# Version
+			if tx.version != self.version or tx.time > current_time:
+				shit_transactions.append(tx)
+				transactions.remove(tx)
+				
+		return shit_transactions

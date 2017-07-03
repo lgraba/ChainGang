@@ -3,10 +3,12 @@ import hashlib
 import pickle
 from collections import namedtuple
 
-Tx = namedtuple("Tx", "input, output, time, comment")
+Tx = namedtuple("Tx", "input, output, time, version, comment")
 
 class Transaction():
 	""" Transaction: A class to parse and represent NutSwings (transactions) """
+
+	version = '.01'
 
 	# Initialize a new Transaction object from whatever string the user shit into the client or a bytes representation
 	def __init__(self, line, tx_bytes = None):
@@ -17,6 +19,8 @@ class Transaction():
 			(self.sender, self.amount), = tx_input.items()
 			tx_output = self.transaction.output
 			(self.receiver, crap), = tx_output.items()
+			self.time = self.transaction.time
+			self.version = self.transaction.version
 			# print(tx_output)
 		else:
 			comment_part = None
@@ -42,8 +46,10 @@ class Transaction():
 			if (words[3] in from_array):
 				self.sender = words[4]
 
+			self.time = time.time()
+
 			# Only one transfer per transaction right now, although we could have more complex input/output dicts
-			self.transaction = Tx({self.sender:self.amount}, {self.receiver:self.amount}, time.time(), comment_part)
+			self.transaction = Tx({self.sender:self.amount}, {self.receiver:self.amount}, self.time, self.version, comment_part)
 
 	# Return Printable on special function repr
 	def __repr__(self):
