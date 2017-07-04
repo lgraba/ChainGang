@@ -2,7 +2,19 @@
 
 A series of blockchain-related classes produced by Logan Graba. First up is the generation of Merkle Trees (MT)! Next is Logan's wildest BlockChain yet, Nutchain; A simple blockchain using my knowledge of MT generation that will allow me to learn about all the components necessary to create a BlockChain. I hope to introduce features such as Centralized-Server operation, Distributed Operation, Transaction Fees, Mining Discovery, Format mutability/treeing, MT -> Directory/Files -> DB conversion, and Partial-Chain Operability via Light Clients.
 
-June 29, 2017
+July 03, 2017
+ToDo:
+1. ScriptSig and ScriptPubKey [Transaction Verification]
+2. Account ownership
+3. Mining and Transaction Fees
+4. Coin assignment and Coin Provenance (Every coin may be traced from Mining to Inputs/Outputs of Related Transactions)
+5. Change Transaction class to accept multiple inputs/outputs [After Coin Provenance complete]
+6. Planning: centralized vs. distributed operations
+7. Alter server to start up in Centralized (no coin, only server mines?) or Distributed (Mining Rewards, Value, Supply considerations) via CLI Arguments
+8. Alter client to detect server mode and use that mode
+9. Planning: Can we make this thing an actual tree?
+10. Conversion: MT -> Directories/Files -> DB
+11. Alter client to start up in Full or Partial Modes (Doesn't download everything, only enough to verify...stuff) 
 
 ### Components
 1. tree.py: A script to generate MTs from directory structures
